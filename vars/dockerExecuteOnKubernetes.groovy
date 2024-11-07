@@ -408,7 +408,7 @@ chown -R ${runAsUser}:${fsGroup} ."""
             includes = config.stashIncludes.workspace
             excludes = config.stashExcludes.workspace
         }
-
+        sh "ls -la"
         if (config.verbose) {
             echo "stash effective (includes): ${includes}"
             echo "stash effective (excludes): ${excludes}"
