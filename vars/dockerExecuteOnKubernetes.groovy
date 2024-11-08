@@ -334,6 +334,11 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                             return result
                         } finally {
                             stashWorkspace(config, utils, 'container', true, true)
+                            dir('build-system') {
+                                sh 'ls -la'
+                                sh 'pwd'
+                                sh './configureWorkspace'
+                            }
                         }
                     }
                 } else {
@@ -424,11 +429,6 @@ chown -R ${runAsUser}:${fsGroup} ."""
             useDefaultExcludes: !config.stashNoDefaultExcludes,
             allowEmpty: true
         )
-        dir('build-system') {
-            sh 'ls -la'
-            sh 'pwd'
-            sh './configureWorkspace'
-        }
         return stashName
     } catch (AbortException | IOException e) {
         echo "${e.getMessage()}"
