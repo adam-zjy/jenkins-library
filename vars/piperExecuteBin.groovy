@@ -83,6 +83,7 @@ void call(Map parameters = [:], String stepName, String metadataFile, List crede
                                     sh "${piperGoPath} ${stepName}${defaultConfigArgs}${customConfigArg}"
                                 }
                             } finally {
+                                sh "env"
                                 jenkinsUtils.handleStepResults(stepName, failOnMissingReports, failOnMissingLinks)
                             }
                         } finally {
