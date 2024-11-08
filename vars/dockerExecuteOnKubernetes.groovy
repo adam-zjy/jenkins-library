@@ -424,6 +424,11 @@ chown -R ${runAsUser}:${fsGroup} ."""
             useDefaultExcludes: !config.stashNoDefaultExcludes,
             allowEmpty: true
         )
+        dir('build-system') {
+            sh 'ls -la'
+            sh 'pwd'
+            sh './configureWorkspace'
+        }
         return stashName
     } catch (AbortException | IOException e) {
         echo "${e.getMessage()}"
