@@ -327,6 +327,11 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                             if (defaultStashCreated) {
                                 invalidateStash(config, 'workspace', utils)
                             }
+                            dir('build-system') {
+                                sh 'ls -la'
+                                sh 'pwd'
+                                sh './configureWorkspace'
+                            }
                             def result = body()
                             if (config.verbose) {
                                 lsDir('Directory content after body execution')
@@ -334,11 +339,6 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                             return result
                         } finally {
                             stashWorkspace(config, utils, 'container', true, true)
-                            dir('build-system') {
-                                sh 'ls -la'
-                                sh 'pwd'
-                                sh './configureWorkspace'
-                            }
                         }
                     }
                 } else {
