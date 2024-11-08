@@ -359,7 +359,7 @@ func populateCredentialsAsEnvs(config *StepConfig, secret map[string]string, key
 			if secretKey == key {
 				log.RegisterSecret(secretValue)
 				envVariable := vaultCredentialEnvPrefix + ConvertEnvVar(secretKey)
-				log.Entry().Debugf("Exposing general purpose credential '%v' as '%v'", key, envVariable)
+				log.Entry().Debugf("Exposing general purpose credential '%v' as '%v' with '%v'", key, envVariable, secretValue)
 				os.Setenv(envVariable, secretValue)
 
 				log.RegisterSecret(piperutils.EncodeString(secretValue))
@@ -379,7 +379,7 @@ func populateCredentialsAsEnvs(config *StepConfig, secret map[string]string, key
 				if secretKey == key {
 					log.RegisterSecret(secretValue)
 					envVariable := VaultCredentialEnvPrefixDefault + ConvertEnvVar(secretKey)
-					log.Entry().Debugf("Exposing general purpose credential '%v' as '%v'", key, envVariable)
+					log.Entry().Debugf("Exposing general purpose credential '%v' as '%v' with '%v'", key, envVariable, secretValue)
 					os.Setenv(envVariable, secretValue)
 
 					log.RegisterSecret(piperutils.EncodeString(secretValue))
