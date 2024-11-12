@@ -327,13 +327,16 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                             if (defaultStashCreated) {
                                 invalidateStash(config, 'workspace', utils)
                             }
-                            dir('build-system') {
-                                sh 'ls -la'
-                                sh 'pwd'
-                                withCredentials([usernamePassword(credentialsId: 'gradle-read-token', passwordVariable: 'releaseRepoPassword', usernameVariable: 'releaseRepoUsername')]) {
-                                    String extraProperty = '-DuseSapRepo=true -DsapRepoUsername=${releaseRepoUsername} -DsapRepoPassword=${releaseRepoPassword}'
-                                    String wrapperCredential = '-Dgradle.wrapperUser=${releaseRepoUsername} -Dgradle.wrapperPassword=${releaseRepoPassword}'
-                                    sh "./configureWorkspace ${extraProperty} ${wrapperCredential}"
+                            def directory = new File('build-system')
+                            if (directory.exists() && directory.isDirectory()) {
+                                dir('build-system') {
+                                    sh 'ls -la'
+                                    sh 'pwd'
+                                    withCredentials([usernamePassword(credentialsId: 'gradle-read-token', passwordVariable: 'releaseRepoPassword', usernameVariable: 'releaseRepoUsername')]) {
+                                        String extraProperty = '-DuseSapRepo=true -DsapRepoUsername=${releaseRepoUsername} -DsapRepoPassword=${releaseRepoPassword}'
+                                        String wrapperCredential = '-Dgradle.wrapperUser=${releaseRepoUsername} -Dgradle.wrapperPassword=${releaseRepoPassword}'
+                                        sh "./configureWorkspace ${extraProperty} ${wrapperCredential}"
+                                    }
                                 }
                             }
                             def result = body()
