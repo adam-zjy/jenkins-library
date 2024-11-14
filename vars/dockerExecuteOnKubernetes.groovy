@@ -327,11 +327,7 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                             if (defaultStashCreated) {
                                 invalidateStash(config, 'workspace', utils)
                             }
-                            File directory = new File(pwd() + "/build-system")
-                            echo "Directory is: " + directory
-                            echo "Is Directory exists? " + directory.exists()
-                            echo "Is Directory? " + directory.isDirectory()
-                            if (directory.exists() && directory.isDirectory()) {
+                            try {
                                 dir('build-system') {
                                     sh 'ls -la'
                                     sh 'pwd'
@@ -341,6 +337,8 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                                         sh "./configureWorkspace ${extraProperty} ${wrapperCredential}"
                                     }
                                 }
+                            } catch (Exception e) {
+                                echo "Failed to execute configureWorkspace " + e.getMessage()
                             }
                             def result = body()
                             if (config.verbose) {
