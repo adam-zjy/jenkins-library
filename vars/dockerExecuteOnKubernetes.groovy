@@ -327,7 +327,7 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                             if (defaultStashCreated) {
                                 invalidateStash(config, 'workspace', utils)
                             }
-                            def directory = new File('build-system')
+                            def directory = new File(pwd() + "/build-system")
                             if (directory.exists() && directory.isDirectory()) {
                                 dir('build-system') {
                                     sh 'ls -la'
