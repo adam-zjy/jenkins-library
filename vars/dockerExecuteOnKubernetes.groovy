@@ -328,9 +328,8 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                                 invalidateStash(config, 'workspace', utils)
                             }
                             try {
+                                sh 'ls -a ~'
                                 dir('build-system') {
-                                    sh 'ls -la'
-                                    sh 'pwd'
                                     withCredentials([usernamePassword(credentialsId: 'gradle-read-token', passwordVariable: 'releaseRepoPassword', usernameVariable: 'releaseRepoUsername')]) {
                                         String extraProperty = '-DuseSapRepo=true -DsapRepoUsername=${releaseRepoUsername} -DsapRepoPassword=${releaseRepoPassword}'
                                         String wrapperCredential = '-Dgradle.wrapperUser=${releaseRepoUsername} -Dgradle.wrapperPassword=${releaseRepoPassword}'
