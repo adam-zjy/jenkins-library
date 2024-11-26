@@ -559,6 +559,8 @@ private List getContainerList(config) {
                     configuredCommand
                 ]
         }
+        
+        echo "Execute commands: ${containerSpec['command']}"
 
         if (config.containerPortMappings?.get(imageName)) {
             def ports = []
