@@ -328,7 +328,6 @@ void executeOnPod(Map config, utils, Closure body, Script script) {
                                 invalidateStash(config, 'workspace', utils)
                             }
                             try {
-                                sh 'ls -a /home/pv'
                                 dir('build-system') {
                                     withCredentials([usernamePassword(credentialsId: 'gradle-read-token', passwordVariable: 'releaseRepoPassword', usernameVariable: 'releaseRepoUsername')]) {
                                         String extraProperty = '-DuseSapRepo=true -DsapRepoUsername=${releaseRepoUsername} -DsapRepoPassword=${releaseRepoPassword}'
