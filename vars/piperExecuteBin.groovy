@@ -80,6 +80,7 @@ void call(Map parameters = [:], String stepName, String metadataFile, List crede
                                 credentialWrapper(config, credentialInfo) {
                                     sh "pwd"
                                     sh "ls -la"
+                                    sh "cat .pipeline/piper-defaults.yml"
                                     sh "${piperGoPath} ${stepName}${defaultConfigArgs}${customConfigArg}"
                                 }
                             } finally {
