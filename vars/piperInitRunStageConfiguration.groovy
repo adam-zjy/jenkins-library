@@ -60,7 +60,21 @@ void call(Map parameters = [:]) {
     def resource = libraryResource(config.stageConfigResource)
     config.stages = (readYaml(text: resource)).spec.stages
     writeFile(file: ".pipeline/stage_conditions.yaml", text: resource)
+
+    // Print the content of the file
+    def stageConditionsContent = readFile(file: ".pipeline/stage_conditions.yaml")
+    echo "Content of .pipeline/stage_conditions.yaml:\n${stageConditionsContent}" 
+
     def success = piperExecuteBin.checkIfStepActive(parameters, script, piperGoPath, ".pipeline/stage_conditions.yaml", ".pipeline/step_out.json", ".pipeline/stage_out.json")
+
+    // Print the content of the file step_out.json
+    def step_out_json_content = readFile(file: ".pipeline/step_out.json")
+    echo "Content of .pipeline/step_out.json:\n${step_out_json_content}"
+
+    // Print the content of the file stage_out.json
+    def stage_out_json_content = readFile(file: ".pipeline/stage_out.json")
+    echo "Content of .pipeline/stage_out.json:\n${stage_out_json_content}"
+
     if (!success) {
         throw new Exception("checkIfStepActive finished with error")
     }
