@@ -79,6 +79,7 @@ void call(Map parameters = [:], String stepName, String metadataFile, List crede
 
             dockerWrapper(script, stepName, config) {
                 handleErrorDetails(stepName) {
+                    sh 'ls -la'
                     writePipelineEnv(script: script, piperGoPath: piperGoPath)
                     utils.unstash('pipelineStepReports')
                     try {

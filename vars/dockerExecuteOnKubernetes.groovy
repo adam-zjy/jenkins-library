@@ -396,6 +396,7 @@ chown -R ${runAsUser}:${fsGroup} ."""
 
         def includes, excludes
 
+        sh 'ls -la'
         if (config.verbose) {
             echo "stashIncludes config: ${config.stashIncludes}"
             echo "stashExcludes config: ${config.stashExcludes}"
