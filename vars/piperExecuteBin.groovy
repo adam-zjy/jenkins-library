@@ -31,7 +31,7 @@ void call(Map parameters = [:], String stepName, String metadataFile, List crede
         prepareMetadataResource(script, metadataFile)
         Map stepParameters = prepareStepParameters(parameters)
         echo "Step params $stepParameters"
-
+        sh 'ls -la'
         withEnv([
             "PIPER_parametersJSON=${groovy.json.JsonOutput.toJson(stepParameters)}",
             "PIPER_correlationID=${env.BUILD_URL}",
@@ -79,6 +79,7 @@ void call(Map parameters = [:], String stepName, String metadataFile, List crede
 
             dockerWrapper(script, stepName, config) {
                 handleErrorDetails(stepName) {
+                    sh 'ls -la'
                     writePipelineEnv(script: script, piperGoPath: piperGoPath)
                     utils.unstash('pipelineStepReports')
                     try {
