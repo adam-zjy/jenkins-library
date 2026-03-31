@@ -61,7 +61,7 @@ spec:
           - STEPS
         default:
           "!**/node_modules/**, !**/.xmake/**, !**/*_test.go, !**/vendor/**/*.go,
-          **/*.html, **/*.xml, **/*.go, **/*.py, **/*.js, **/*.scala, **/*.ts"
+          **/*.html, **/*.xml, **/*.go, **/*.py, **/*.js, **/*.rb, **/*.scala, **/*.ts"
       - name: fullScanCycle
         type: string
         description: Indicates how often a full scan should happen between the incremental scans when activated
@@ -120,7 +120,7 @@ spec:
           - PARAMETERS
           - STAGES
           - STEPS
-        default: false
+        default: true
       - name: incremental
         type: bool
         description: Whether incremental scans are to be applied which optimizes the scan time but might reduce detection capabilities. Therefore full scans are still required from time to time and should be scheduled via `fullScansScheduled` and `fullScanCycle`

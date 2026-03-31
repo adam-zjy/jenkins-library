@@ -28,7 +28,6 @@ import (
 	"github.com/SAP/jenkins-library/pkg/toolrecord"
 	"github.com/bmatcuk/doublestar"
 	"github.com/google/go-github/v68/github"
-	"github.com/pkg/errors"
 )
 
 type checkmarxOneExecuteScanUtils interface {
@@ -467,7 +466,7 @@ func (c *checkmarxOneExecuteScanHelper) IncrementalOrFull(scans []checkmarxOne.S
 
 	scanMetadatas, err := c.sys.GetScanMetadatas(scanIds)
 	if err != nil {
-		return false, false, 0, errors.Wrapf(err, "failed to fetch metadata for scans")
+		return false, false, 0, fmt.Errorf("failed to fetch metadata for scans: %w", err)
 	}
 
 	contiguousIncrementalScans := 0
@@ -513,10 +512,7 @@ func (c *checkmarxOneExecuteScanHelper) UploadScanContent(zipFile *os.File) (str
 
 func (c *checkmarxOneExecuteScanHelper) GetScanBranch() (string, bool, string) {
 	branch := c.config.Branch
-	cicdOrch, err := orchestrator.GetOrchestratorConfigProvider(nil)
-	if err != nil {
-		log.Entry().Warn("Could not identify orchestrator")
-	}
+	cicdOrch := orchestrator.GetOrchestratorConfigProvider(nil)
 	if len(branch) == 0 && len(c.config.GitBranch) > 0 && c.config.GitBranch != "n/a" {
 		branch = c.config.GitBranch
 	} else if len(branch) == 0 && (len(c.config.GitBranch) == 0 || c.config.GitBranch == "n/a") { // use the branch from the orchestrator by default
@@ -641,10 +637,7 @@ func (c *checkmarxOneExecuteScanHelper) PollScanStatus(scan *checkmarxOne.Scan) 
 }
 
 func (c *checkmarxOneExecuteScanHelper) PostScanSummaryInPullRequest(detailedResults *map[string]interface{}, insecure bool) error {
-	cicdOrch, err := orchestrator.GetOrchestratorConfigProvider(nil)
-	if err != nil {
-		return fmt.Errorf("Failed to get orchestrator config provider: %s", err)
-	}
+	cicdOrch := orchestrator.GetOrchestratorConfigProvider(nil)
 	isPullRequest := cicdOrch.IsPullRequest()
 	pullRequestId := cicdOrch.PullRequestConfig().Key
 	var owner, repository string
@@ -747,7 +740,8 @@ func (c *checkmarxOneExecuteScanHelper) PostScanSummaryInPullRequest(detailedRes
 			scanIcon = ":white_check_mark:"
 		}
 		comment := &github.IssueComment{
-			Body: github.Ptr(fmt.Sprintf(`# %s Checkmarx %s scan completed 
+			Body: github.Ptr(fmt.Sprintf(`<!-- Piper CxOne Scan Summary -->
+# %s Checkmarx %s scan completed 
 **Project**: %s
 **ScanId**: %s
 **Preset**: %s
@@ -764,6 +758,23 @@ Severity | Number of unaudited findings
 		pullRequestNumber, err := strconv.Atoi(pullRequestId)
 		if err != nil {
 			return fmt.Errorf("failed to parse int from pull request name %s: %s", c.config.PullRequestName, err)
+		}
+		// Check if comment already exists, delete old one to avoid multiple comments
+		// search for watermark <!-- Piper CxOne Scan Summary -->
+		comments, _, err := ghIssues.ListComments(c.ctx, owner, repository, pullRequestNumber, &github.IssueListCommentsOptions{})
+		if err != nil {
+			log.Entry().Errorf("failed to list GitHub issue comments: %s", err)
+		} else {
+			for _, existingComment := range comments {
+				if strings.Contains(*existingComment.Body, "<!-- Piper CxOne Scan Summary -->") {
+					_, err := ghIssues.DeleteComment(c.ctx, owner, repository, existingComment.GetID())
+					if err != nil {
+						log.Entry().Errorf("failed to delete old GitHub issue comment: %s", err)
+					}
+					log.Entry().Infof("Deleted old GitHub issue comment for project %v", c.Project.Name)
+					break
+				}
+			}
 		}
 		_, _, err = ghIssues.CreateComment(c.ctx, owner, repository, pullRequestNumber, comment)
 		if err != nil {
@@ -955,7 +966,7 @@ func (c *checkmarxOneExecuteScanHelper) createReportName(workspace, reportFileNa
 func (c *checkmarxOneExecuteScanHelper) downloadAndSaveReport(reportFileName string, scan *checkmarxOne.Scan, reportType string) error {
 	report, err := c.generateAndDownloadReport(scan, reportType)
 	if err != nil {
-		return errors.Wrap(err, "failed to download the report")
+		return fmt.Errorf("failed to download the report: %w", err)
 	}
 	log.Entry().Debugf("Saving report to file %v...", reportFileName)
 	return c.utils.WriteFile(reportFileName, report, 0o700)
@@ -966,12 +977,12 @@ func (c *checkmarxOneExecuteScanHelper) generateAndDownloadReport(scan *checkmar
 
 	report, err := c.sys.RequestNewReport(scan.ScanID, scan.ProjectID, scan.Branch, reportType)
 	if err != nil {
-		return []byte{}, errors.Wrap(err, "failed to request new report")
+		return []byte{}, fmt.Errorf("failed to request new report: %w", err)
 	}
 	for {
 		finalStatus, err = c.sys.GetReportStatus(report)
 		if err != nil {
-			return []byte{}, errors.Wrap(err, "failed to get report status")
+			return []byte{}, fmt.Errorf("failed to get report status: %w", err)
 		}
 
 		if finalStatus.Status == "completed" {
@@ -1162,13 +1173,13 @@ func (c *checkmarxOneExecuteScanHelper) zipWorkspaceFiles(filterPattern string, 
 	sort.Strings(patterns)
 	zipFile, err := os.Create(zipFileName)
 	if err != nil {
-		return zipFile, errors.Wrap(err, "failed to create archive of project sources")
+		return zipFile, fmt.Errorf("failed to create archive of project sources: %w", err)
 	}
 	defer zipFile.Close()
 
 	err = c.zipFolder(utils.GetWorkspace(), zipFile, patterns, utils)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to compact folder")
+		return nil, fmt.Errorf("failed to compact folder: %w", err)
 	}
 	return zipFile, nil
 }
@@ -1264,7 +1275,7 @@ func (c *checkmarxOneExecuteScanHelper) isFileNotMatchingPattern(patterns []stri
 		}
 		match, err := utils.PathMatch(pattern, path)
 		if err != nil {
-			return false, errors.Wrapf(err, "Pattern %v could not get executed", pattern)
+			return false, fmt.Errorf("Pattern %v could not get executed: %w", pattern, err)
 		}
 		if match {
 			includeMatch = true
@@ -1285,7 +1296,7 @@ func (c *checkmarxOneExecuteScanHelper) isFileNotMatchingPattern(patterns []stri
 		}
 		match, err := utils.PathMatch(pattern, path)
 		if err != nil {
-			return false, errors.Wrapf(err, "Pattern %v could not get executed", pattern)
+			return false, fmt.Errorf("Pattern %v could not get executed: %w", pattern, err)
 		}
 
 		if match { // match with an exclude pattern, the file is excluded
