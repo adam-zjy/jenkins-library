@@ -176,6 +176,7 @@ void call(Map parameters = [:], body) {
             }
 
             def securityContext = securityContextFromOptions(config.dockerOptions)
+            echo "Docker Volume Bind: ${config.dockerVolumeBind}"
             def containerMountPath = containerMountPathFromVolumeBind(config.dockerVolumeBind)
             if (env.POD_NAME && isContainerDefined(config)) {
                 container(getContainerDefined(config)) {
